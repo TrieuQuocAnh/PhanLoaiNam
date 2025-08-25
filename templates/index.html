@@ -1,0 +1,81 @@
+<!doctype html>
+<html lang="vi">
+<head>
+  <meta charset="utf-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1" />
+  <title>🍄 Dự đoán nấm</title>
+  <style>
+    :root { --bg:#0b1020; --panel:#121938; --text:#eaefff; --muted:#9aa3b2; --ok:#2ecc71; --bad:#e74c3c; }
+    * { box-sizing: border-box; font-family: system-ui, -apple-system, Segoe UI, Roboto, Arial, sans-serif; }
+    body { margin:0; min-height:100vh; background: radial-gradient(60% 60% at 50% 0%, #1f2b6b, #0b1020 70%); color: var(--text); display:flex; align-items:center; justify-content:center; padding: 24px; }
+    .card { width: 100%; max-width: 720px; background: linear-gradient(180deg, rgba(255,255,255,0.06), rgba(255,255,255,0.03)); border: 1px solid rgba(255,255,255,0.12); border-radius: 20px; padding: 24px; box-shadow: 0 20px 80px rgba(0,0,0,0.4); }
+    h1 { margin: 0 0 8px; font-size: 28px; }
+    .sub { color: var(--muted); margin-bottom: 24px; }
+    form { display:grid; gap: 16px; grid-template-columns: 1fr; }
+    .row { display:grid; gap: 12px; grid-template-columns: 1fr; }
+    @media(min-width: 640px){ .row { grid-template-columns: 1fr 1fr 1fr; } }
+    label { font-weight: 600; font-size: 14px; }
+    select { width: 100%; padding: 10px 12px; border-radius: 12px; border: 1px solid rgba(255,255,255,0.15); background: #0e1430; color: var(--text); }
+    button { padding: 12px 16px; border-radius: 12px; background: #4c6fff; color: white; border: none; font-weight: 700; cursor: pointer; }
+    button:hover { filter: brightness(1.05); }
+    .result { margin-top: 16px; padding: 12px 14px; border-radius: 12px; border: 1px solid rgba(255,255,255,0.18); display:flex; align-items:center; gap:10px; }
+    .tag { font-weight: 700; padding: 3px 8px; border-radius: 999px; }
+    .ok { background: #1e4630; color: #adf0c0; border: 1px solid #2ecc71; }
+    .bad { background: #4a1820; color: #ffc1c7; border: 1px solid #e74c3c; }
+    .unknown { background: #353a50; color: #eaefff; border: 1px solid #8ea0d3; }
+    .warn { color: #ffd166; font-size: 14px; }
+  </style>
+</head>
+<body>
+  <div class="card">
+    <h1>🍄 Dự đoán nấm ăn được hay không</h1>
+    <div class="sub">Chọn các thuộc tính bên dưới rồi bấm <b>Dự đoán</b>. Mô hình quyết định cây sẽ trả về <i>Edible</i> hoặc <i>Poisonous</i>.</div>
+    {% if not model_ready %}
+      <div class="result unknown"><span class="tag unknown">⚠️ Thiếu mô hình</span> Không tìm thấy file <code>{{ model_path }}</code>. Hãy đặt <code>mushroom_model.pkl</code> cạnh file app và tải lại trang.</div>
+    {% endif %}
+
+    <form method="post">
+      <div class="row">
+        <div>
+          <label for="odor">Mùi (odor)</label>
+          <select id="odor" name="odor" required>
+            <option value="">-- Chọn mùi --</option>
+            {% for code, label in odor_values.items() %}
+              <option value="{{ code }}" {% if form_vals.odor==code %}selected{% endif %}>{{ label }}</option>
+            {% endfor %}
+          </select>
+        </div>
+        <div>
+          <label for="cap">Màu mũ nấm (cap-color)</label>
+          <select id="cap" name="cap-color" required>
+            <option value="">-- Chọn màu mũ --</option>
+            {% for code, label in cap_color_values.items() %}
+              <option value="{{ code }}" {% if form_vals.cap==code or form_vals['cap-color']==code %}selected{% endif %}>{{ label }}</option>
+            {% endfor %}
+          </select>
+        </div>
+        <div>
+          <label for="gill">Màu phiến nấm (gill-color)</label>
+          <select id="gill" name="gill-color" required>
+            <option value="">-- Chọn màu phiến --</option>
+            {% for code, label in gill_color_values.items() %}
+              <option value="{{ code }}" {% if form_vals.gill==code or form_vals['gill-color']==code %}selected{% endif %}>{{ label }}</option>
+            {% endfor %}
+          </select>
+        </div>
+      </div>
+      <button type="submit">🔮 Dự đoán</button>
+    </form>
+
+    {% if result %}
+      <div class="result {{ result.cls }}">
+        <span class="tag {{ result.cls }}">{{ result.emoji }} {{ result.title }}</span>
+        <div>{{ result.msg }}</div>
+      </div>
+      {% if result.cls == 'bad' %}
+        <div class="warn">*Lưu ý*: Kết quả chỉ mang tính tham khảo học tập, không dùng để ăn thử nấm ngoài thực tế.</div>
+      {% endif %}
+    {% endif %}
+  </div>
+</body>
+</html>
